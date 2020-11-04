@@ -5,7 +5,8 @@
 import java.io.*;
 import java.util.Scanner;
 
-import client.*;
+import ocsf.client.*;
+import client.ChatClient;
 import common.*;
 
 /**
@@ -16,7 +17,7 @@ import common.*;
  * @author Fran&ccedil;ois B&eacute;langer
  * @author Dr Timothy C. Lethbridge  
  * @author Dr Robert Lagani&egrave;re
- * @version September 2020
+ * @version July 2000
  */
 public class ClientConsole implements ChatIF 
 {
@@ -33,14 +34,7 @@ public class ClientConsole implements ChatIF
    * The instance of the client that created this ConsoleChat.
    */
   ChatClient client;
-  
-  
-  
-  /**
-   * Scanner to read from the console
-   */
-  Scanner fromConsole; 
-
+  Scanner fromConsole;
   
   //Constructors ****************************************************
 
@@ -50,22 +44,17 @@ public class ClientConsole implements ChatIF
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
-  public ClientConsole(String host, int port) 
+  public ClientConsole(String loginID, String host, int port) 
   {
     try 
     {
-      client= new ChatClient(host, port, this);
-      
-      
+      client= new ChatClient(loginID, host, port, this);
     } 
     catch(IOException exception) 
     {
-      System.out.println("Error: Can't setup connection!"
-                + " Terminating client.");
-      System.exit(1);
+    	System.out.println("Cannot open connection, waiting for command.");
     }
     
-    // Create scanner object to read from console
     fromConsole = new Scanner(System.in); 
   }
 
@@ -78,22 +67,22 @@ public class ClientConsole implements ChatIF
    */
   public void accept() 
   {
-    try
-    {
+	  try
+	    {
 
-      String message;
+	      String message;
 
-      while (true) 
-      {
-        message = fromConsole.nextLine();
-        client.handleMessageFromClientUI(message);
-      }
-    } 
-    catch (Exception ex) 
-    {
-      System.out.println
-        ("Unexpected error while reading from console!");
-    }
+	      while (true) 
+	      {
+	        message = fromConsole.nextLine();
+	        client.handleMessageFromClientUI(message);
+	      }
+	    } 
+	    catch (Exception ex) 
+	    {
+	      System.out.println
+	        ("Unexpected error while reading from console!");
+	    }
   }
 
   /**
@@ -104,7 +93,7 @@ public class ClientConsole implements ChatIF
    */
   public void display(String message) 
   {
-    System.out.println("> " + message);
+    System.out.println( message);
   }
 
   
@@ -118,17 +107,38 @@ public class ClientConsole implements ChatIF
   public static void main(String[] args) 
   {
     String host = "";
-
-
+    int port_num = 0; 
+    String loginID = "";
+    
     try
     {
-      host = args[0];
+      loginID = args[0];
+    }
+    catch(ArrayIndexOutOfBoundsException e)
+    {
+    	System.out.println(" Login ID not provided, exiting client..");
+    	System.exit(0);
+    }
+    
+    try
+    {
+      host = args[1];
     }
     catch(ArrayIndexOutOfBoundsException e)
     {
       host = "localhost";
     }
-    ClientConsole chat= new ClientConsole(host, DEFAULT_PORT);
+    
+    try
+    {
+      port_num = Integer.parseInt(args[2]);
+    }
+    catch(ArrayIndexOutOfBoundsException e)
+    {
+      port_num = DEFAULT_PORT;
+    }
+    
+    ClientConsole chat= new ClientConsole(loginID,host, port_num);
     chat.accept();  //Wait for console data
   }
 }
